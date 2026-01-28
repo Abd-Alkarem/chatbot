@@ -6,16 +6,19 @@ A modern, feature-rich chat application similar to WhatsApp/Telegram with user a
 
 ### Core Features
 - 💬 **Real-time messaging** with Socket.IO
+- 🎤 **Voice Chat** - WebRTC-powered real-time voice communication
 - 🔐 **User authentication** - Sign up and sign in with email
 - 👥 **Friend system** - Add friends and manage friend requests
 - 🏠 **Public & Private groups** - Create and join chat groups
 - ⌨️ **Typing indicators** - see when others are typing
-- � **Dark mode** - Toggle between light and dark themes
+- 🌙 **Dark mode** - Toggle between light and dark themes
 - ⚙️ **Settings panel** - Customize your experience
-- �🎨 **Modern UI** - beautiful gradient design with smooth animations
-- 📱 **Responsive** - works on desktop and mobile
+- 🎨 **Modern UI** - beautiful gradient design with smooth animations
+- 📱 **Fully Responsive** - Optimized for all devices (desktop, tablet, mobile)
 - 🎨 **Colorful avatars** - automatically generated for each user
 - 🔔 **Notifications** - Get notified about messages and friend requests
+- 🔊 **Voice Activity Detection** - See who's speaking in real-time
+- 📲 **Mobile-Optimized** - Touch-friendly UI with hamburger menu
 
 ## How It Works
 
@@ -93,12 +96,32 @@ The chat app will be available at: **http://localhost:3000**
 - Messages are sent in real-time to all group members
 - See typing indicators when others are typing
 
+### Voice Chat
+- Click the **microphone button** (bottom right) to start voice chat
+- Grant microphone permissions when prompted
+- See all participants in the voice chat panel
+- Voice activity indicator shows who's speaking (🔊/🔇)
+- Click the button again to leave voice chat
+- Works with multiple participants simultaneously using WebRTC
+
 ### Settings
 1. Click the **Settings** icon (gear) in the sidebar header
 2. **Appearance**: Toggle dark mode on/off
 3. **Notifications**: Enable/disable notifications and sounds
 4. **Profile**: Update your username and bio
 5. **Account**: Logout when needed
+
+### Mobile Usage
+- **Hamburger Menu**: Tap the menu icon (top left) to open/close sidebar
+- **Touch Optimized**: All buttons are sized for easy tapping (44px minimum)
+- **Responsive Layout**: Adapts to all screen sizes:
+  - 📱 Small phones (320px+)
+  - 📱 Standard phones (375px+)
+  - 📱 Large phones (480px+)
+  - 📱 Tablets (768px+)
+  - 💻 Desktops (1024px+)
+- **Landscape Mode**: Optimized layouts for horizontal orientation
+- **Auto-zoom Prevention**: Input fields prevent unwanted zoom on mobile
 
 ## Project Structure
 
@@ -125,8 +148,11 @@ chat-app/
 - **Session Management**: express-session
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Real-time**: WebSockets via Socket.IO
+- **Voice Chat**: WebRTC (Peer-to-peer audio)
+- **Audio Processing**: Web Audio API (voice activity detection)
 - **Database**: In-memory storage (Map-based)
 - **UUID**: For unique IDs
+- **Responsive Design**: CSS Media Queries, Flexbox, CSS Grid
 
 ## Features Explained
 
@@ -164,6 +190,17 @@ chat-app/
 - Online user count displayed
 - Join/leave notifications
 - Message history (last 100 messages per group)
+
+### Voice Chat Features
+- **WebRTC Technology**: Peer-to-peer voice communication
+- **Low Latency**: Direct connections between users
+- **Voice Activity Detection**: Automatic detection of who's speaking
+- **Echo Cancellation**: Built-in audio processing for clear calls
+- **Noise Suppression**: Reduces background noise
+- **Auto Gain Control**: Normalizes audio levels
+- **Multi-participant**: Support for group voice calls
+- **Visual Indicators**: Real-time speaking status with animations
+- **Easy Controls**: One-click to join/leave voice chat
 
 ### User Interface
 - **Tabbed Sidebar**: Switch between Groups and Friends
@@ -246,6 +283,21 @@ Works in all modern browsers that support:
 - WebSockets
 - ES6 JavaScript
 - CSS Grid and Flexbox
+- WebRTC (for voice chat)
+- Web Audio API (for voice detection)
+- getUserMedia API (for microphone access)
+
+**Recommended Browsers:**
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Opera 76+
+
+**Mobile Browsers:**
+- Chrome Mobile
+- Safari iOS 14.3+
+- Samsung Internet
+- Firefox Mobile
 
 ## License
 

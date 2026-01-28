@@ -595,3 +595,272 @@ setTimeout(() => {
             });
     }
 }, 1000);
+
+const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const sidebar = document.querySelector('.sidebar');
+
+mobileMenuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('mobile-open');
+});
+
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768) {
+        if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+            sidebar.classList.remove('mobile-open');
+        }
+    }
+});
+
+const voiceChatBtn = document.getElementById('voiceChatBtn');
+const voiceParticipants = document.getElementById('voiceParticipants');
+let localStream = null;
+let peerConnections = new Map();
+let isVoiceChatActive = false;
+
+const iceServers = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+};
+
+voiceChatBtn.addEventListener('click', async () => {
+    if (!isVoiceChatActive) {
+        await startVoiceChat();
+    } else {
+        stopVoiceChat();
+    }
+});
+
+async function startVoiceChat() {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            }, 
+            video: false 
+        });
+        
+        isVoiceChatActive = true;
+        voiceChatBtn.classList.add('active');
+        voiceParticipants.classList.remove('hidden');
+        
+        socket.emit('join-voice-chat', { 
+            room: currentGroup,
+            userId: currentUser.id,
+            username: currentUser.username,
+            avatar: currentUser.avatar
+        });
+        
+        addVoiceParticipant(currentUser.id, currentUser.username, currentUser.avatar, true);
+        
+        detectVoiceActivity(localStream);
+        
+    } catch (error) {
+        console.error('Error accessing microphone:', error);
+        alert('Could not access microphone. Please check permissions.');
+    }
+}
+
+function stopVoiceChat() {
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
+    
+    peerConnections.forEach((pc, peerId) => {
+        pc.close();
+    });
+    peerConnections.clear();
+    
+    isVoiceChatActive = false;
+    voiceChatBtn.classList.remove('active');
+    voiceParticipants.classList.add('hidden');
+    voiceParticipants.innerHTML = '';
+    
+    socket.emit('leave-voice-chat', { 
+        room: currentGroup,
+        userId: currentUser.id
+    });
+}
+
+function addVoiceParticipant(userId, username, avatar, isSelf = false) {
+    if (document.getElementById(`voice-${userId}`)) return;
+    
+    const participant = document.createElement('div');
+    participant.className = 'voice-participant';
+    participant.id = `voice-${userId}`;
+    
+    participant.innerHTML = `
+        <div class="voice-avatar" style="background-color: ${avatar}">
+            ${username.charAt(0).toUpperCase()}
+        </div>
+        <div class="voice-name">${username}${isSelf ? ' (You)' : ''}</div>
+        <div class="voice-status">🔇</div>
+    `;
+    
+    voiceParticipants.appendChild(participant);
+}
+
+function removeVoiceParticipant(userId) {
+    const participant = document.getElementById(`voice-${userId}`);
+    if (participant) {
+        participant.remove();
+    }
+}
+
+function updateVoiceStatus(userId, isSpeaking) {
+    const participant = document.getElementById(`voice-${userId}`);
+    if (participant) {
+        const status = participant.querySelector('.voice-status');
+        if (isSpeaking) {
+            participant.classList.add('speaking');
+            status.textContent = '🔊';
+        } else {
+            participant.classList.remove('speaking');
+            status.textContent = '🔇';
+        }
+    }
+}
+
+function detectVoiceActivity(stream) {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    const microphone = audioContext.createMediaStreamSource(stream);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    
+    microphone.connect(analyser);
+    analyser.fftSize = 512;
+    
+    let isSpeaking = false;
+    const threshold = 30;
+    
+    function checkAudio() {
+        if (!isVoiceChatActive) return;
+        
+        analyser.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+        
+        const nowSpeaking = average > threshold;
+        
+        if (nowSpeaking !== isSpeaking) {
+            isSpeaking = nowSpeaking;
+            updateVoiceStatus(currentUser.id, isSpeaking);
+            socket.emit('voice-activity', {
+                room: currentGroup,
+                userId: currentUser.id,
+                isSpeaking: isSpeaking
+            });
+        }
+        
+        requestAnimationFrame(checkAudio);
+    }
+    
+    checkAudio();
+}
+
+async function createPeerConnection(peerId, isInitiator) {
+    const pc = new RTCPeerConnection(iceServers);
+    peerConnections.set(peerId, pc);
+    
+    if (localStream) {
+        localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+        });
+    }
+    
+    pc.ontrack = (event) => {
+        const remoteAudio = new Audio();
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play().catch(e => console.error('Error playing audio:', e));
+    };
+    
+    pc.onicecandidate = (event) => {
+        if (event.candidate) {
+            socket.emit('voice-ice-candidate', {
+                room: currentGroup,
+                to: peerId,
+                candidate: event.candidate
+            });
+        }
+    };
+    
+    pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+            peerConnections.delete(peerId);
+        }
+    };
+    
+    if (isInitiator) {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        socket.emit('voice-offer', {
+            room: currentGroup,
+            to: peerId,
+            offer: offer
+        });
+    }
+    
+    return pc;
+}
+
+socket.on('voice-user-joined', async (data) => {
+    if (data.userId !== currentUser?.id && isVoiceChatActive) {
+        addVoiceParticipant(data.userId, data.username, data.avatar);
+        await createPeerConnection(data.userId, true);
+    }
+});
+
+socket.on('voice-user-left', (data) => {
+    removeVoiceParticipant(data.userId);
+    const pc = peerConnections.get(data.userId);
+    if (pc) {
+        pc.close();
+        peerConnections.delete(data.userId);
+    }
+});
+
+socket.on('voice-offer', async (data) => {
+    const pc = await createPeerConnection(data.from, false);
+    await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+    
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    
+    socket.emit('voice-answer', {
+        room: currentGroup,
+        to: data.from,
+        answer: answer
+    });
+});
+
+socket.on('voice-answer', async (data) => {
+    const pc = peerConnections.get(data.from);
+    if (pc) {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+    }
+});
+
+socket.on('voice-ice-candidate', async (data) => {
+    const pc = peerConnections.get(data.from);
+    if (pc) {
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+    }
+});
+
+socket.on('voice-activity', (data) => {
+    if (data.userId !== currentUser?.id) {
+        updateVoiceStatus(data.userId, data.isSpeaking);
+    }
+});
+
+socket.on('voice-participants-list', (participants) => {
+    participants.forEach(participant => {
+        if (participant.userId !== currentUser?.id) {
+            addVoiceParticipant(participant.userId, participant.username, participant.avatar);
+        }
+    });
+});

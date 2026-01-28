@@ -26,6 +26,7 @@ app.use(express.static('public'));
 const onlineUsers = new Map();
 const userSockets = new Map();
 const messages = new Map();
+const voiceRooms = new Map();
 
 app.post('/api/register', async (req, res) => {
     try {
@@ -331,6 +332,96 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('join-voice-chat', (data) => {
+        const { room, userId, username, avatar } = data;
+        
+        if (!voiceRooms.has(room)) {
+            voiceRooms.set(room, new Map());
+        }
+        
+        const roomParticipants = voiceRooms.get(room);
+        roomParticipants.set(userId, { userId, username, avatar, socketId: socket.id });
+        
+        const participantsList = Array.from(roomParticipants.values()).map(p => ({
+            userId: p.userId,
+            username: p.username,
+            avatar: p.avatar
+        }));
+        
+        socket.emit('voice-participants-list', participantsList);
+        
+        socket.to(room).emit('voice-user-joined', { userId, username, avatar });
+        
+        console.log(`User ${username} joined voice chat in room ${room}`);
+    });
+
+    socket.on('leave-voice-chat', (data) => {
+        const { room, userId } = data;
+        
+        if (voiceRooms.has(room)) {
+            const roomParticipants = voiceRooms.get(room);
+            roomParticipants.delete(userId);
+            
+            if (roomParticipants.size === 0) {
+                voiceRooms.delete(room);
+            }
+        }
+        
+        socket.to(room).emit('voice-user-left', { userId });
+        
+        console.log(`User ${userId} left voice chat in room ${room}`);
+    });
+
+    socket.on('voice-offer', (data) => {
+        const { room, to, offer } = data;
+        const onlineUser = onlineUsers.get(socket.id);
+        
+        if (onlineUser) {
+            const targetSocketId = userSockets.get(to);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit('voice-offer', {
+                    from: onlineUser.userId,
+                    offer: offer
+                });
+            }
+        }
+    });
+
+    socket.on('voice-answer', (data) => {
+        const { room, to, answer } = data;
+        const onlineUser = onlineUsers.get(socket.id);
+        
+        if (onlineUser) {
+            const targetSocketId = userSockets.get(to);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit('voice-answer', {
+                    from: onlineUser.userId,
+                    answer: answer
+                });
+            }
+        }
+    });
+
+    socket.on('voice-ice-candidate', (data) => {
+        const { room, to, candidate } = data;
+        const onlineUser = onlineUsers.get(socket.id);
+        
+        if (onlineUser) {
+            const targetSocketId = userSockets.get(to);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit('voice-ice-candidate', {
+                    from: onlineUser.userId,
+                    candidate: candidate
+                });
+            }
+        }
+    });
+
+    socket.on('voice-activity', (data) => {
+        const { room, userId, isSpeaking } = data;
+        socket.to(room).emit('voice-activity', { userId, isSpeaking });
+    });
+
     socket.on('disconnect', () => {
         const onlineUser = onlineUsers.get(socket.id);
         if (onlineUser) {
@@ -338,6 +429,17 @@ io.on('connection', (socket) => {
                 username: onlineUser.username,
                 userId: onlineUser.userId,
                 room: onlineUser.currentRoom
+            });
+            
+            voiceRooms.forEach((participants, room) => {
+                if (participants.has(onlineUser.userId)) {
+                    participants.delete(onlineUser.userId);
+                    io.to(room).emit('voice-user-left', { userId: onlineUser.userId });
+                    
+                    if (participants.size === 0) {
+                        voiceRooms.delete(room);
+                    }
+                }
             });
             
             userSockets.delete(onlineUser.userId);
