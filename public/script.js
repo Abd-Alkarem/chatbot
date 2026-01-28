@@ -666,6 +666,12 @@ voiceChatBtn.addEventListener('click', async () => {
 });
 
 async function startVoiceChat() {
+    if (!currentUser) {
+        alert('Please wait for authentication to complete before using voice chat.');
+        console.error('Cannot start voice chat: currentUser is null');
+        return;
+    }
+
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         alert('Voice chat is not supported in this browser. Please use Chrome, Firefox, or Edge.');
         return;
@@ -740,10 +746,12 @@ function stopVoiceChat() {
     voiceParticipants.classList.add('hidden');
     voiceParticipants.innerHTML = '';
     
-    socket.emit('leave-voice-chat', { 
-        room: currentGroup,
-        userId: currentUser.id
-    });
+    if (currentUser) {
+        socket.emit('leave-voice-chat', { 
+            room: currentGroup,
+            userId: currentUser.id
+        });
+    }
 }
 
 function addVoiceParticipant(userId, username, avatar, isSelf = false) {
@@ -786,6 +794,11 @@ function updateVoiceStatus(userId, isSpeaking) {
 }
 
 function detectVoiceActivity(stream) {
+    if (!currentUser) {
+        console.error('Cannot detect voice activity: currentUser is null');
+        return;
+    }
+
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const analyser = audioContext.createAnalyser();
     const microphone = audioContext.createMediaStreamSource(stream);
@@ -798,7 +811,7 @@ function detectVoiceActivity(stream) {
     const threshold = 30;
     
     function checkAudio() {
-        if (!isVoiceChatActive) return;
+        if (!isVoiceChatActive || !currentUser) return;
         
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
