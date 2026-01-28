@@ -110,10 +110,13 @@ io.on('connection', (socket) => {
 
     socket.on('authenticate', (data) => {
         try {
+            console.log('Authentication attempt for socket:', socket.id);
             const decoded = jwt.verify(data.token, JWT_SECRET);
+            console.log('Token decoded successfully, userId:', decoded.userId);
             const user = db.getUser(decoded.userId);
             
             if (user) {
+                console.log('User found:', user.username);
                 socket.userId = user.id;
                 userSockets.set(user.id, socket.id);
                 onlineUsers.set(socket.id, {
@@ -129,12 +132,16 @@ io.on('connection', (socket) => {
                     group.members.add(user.id);
                 }
                 
-                socket.emit('authenticated', {
+                const authData = {
                     user: db.getUserSafe(user.id),
                     groups: db.getUserGroups(user.id)
-                });
+                };
+                
+                console.log('Sending authenticated event with data:', authData);
+                socket.emit('authenticated', authData);
                 
                 if (messages.has('general')) {
+                    console.log('Sending message history, count:', messages.get('general').length);
                     socket.emit('message-history', messages.get('general'));
                 }
                 
@@ -145,18 +152,30 @@ io.on('connection', (socket) => {
                 });
                 
                 emitOnlineUsers();
+                console.log('Authentication complete for:', user.username);
+            } else {
+                console.log('User not found for userId:', decoded.userId);
+                socket.emit('auth-error', { error: 'User not found' });
             }
         } catch (error) {
+            console.error('Authentication error:', error.message);
             socket.emit('auth-error', { error: 'Invalid token' });
         }
     });
 
     socket.on('send-message', (data) => {
+        console.log('Message received from socket:', socket.id, 'data:', data);
         const onlineUser = onlineUsers.get(socket.id);
-        if (!onlineUser) return;
+        if (!onlineUser) {
+            console.log('User not found in onlineUsers for socket:', socket.id);
+            return;
+        }
         
         const user = db.getUser(onlineUser.userId);
-        if (!user) return;
+        if (!user) {
+            console.log('User not found in database for userId:', onlineUser.userId);
+            return;
+        }
 
         const message = {
             id: uuidv4(),
@@ -168,6 +187,8 @@ io.on('connection', (socket) => {
             timestamp: new Date().toISOString()
         };
 
+        console.log('Created message:', message);
+
         if (!messages.has(message.room)) {
             messages.set(message.room, []);
         }
@@ -177,6 +198,7 @@ io.on('connection', (socket) => {
             messages.get(message.room).shift();
         }
 
+        console.log('Emitting message to room:', message.room);
         io.to(message.room).emit('new-message', message);
     });
 
