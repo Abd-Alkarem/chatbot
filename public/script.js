@@ -62,6 +62,7 @@ socket.on('disconnect', (reason) => {
 });
 
 socket.on('authenticated', (data) => {
+    console.log('User authenticated:', data);
     currentUser = data.user;
     currentUsername.textContent = currentUser.username;
     currentUserAvatar.style.backgroundColor = currentUser.avatar;
@@ -80,6 +81,7 @@ socket.on('authenticated', (data) => {
         }
     }
     
+    console.log('Loading initial data...');
     loadGroups(data.groups);
     loadPublicGroups();
     loadFriends();
@@ -99,6 +101,7 @@ socket.on('message-history', (messages) => {
 });
 
 socket.on('new-message', (message) => {
+    console.log('Received new message:', message);
     displayMessage(message);
     scrollToBottom();
 });
@@ -134,6 +137,7 @@ socket.on('group-created', () => {
 });
 
 socket.on('online-users', (users) => {
+    console.log('Online users update:', users);
     onlineCount.textContent = users.length;
 });
 
@@ -191,6 +195,7 @@ messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = messageInput.value.trim();
     if (text) {
+        console.log('Sending message:', text, 'to room:', currentGroup);
         socket.emit('send-message', { text, room: currentGroup });
         messageInput.value = '';
         socket.emit('typing', false);
@@ -335,6 +340,7 @@ refreshGroupsBtn.addEventListener('click', () => {
 });
 
 async function loadGroups(groups) {
+    console.log('Loading user groups:', groups);
     groupList.innerHTML = '';
     
     if (!groups || groups.length === 0) {
@@ -358,6 +364,7 @@ async function loadGroups(groups) {
         `;
         
         item.addEventListener('click', () => {
+            console.log('Joining group:', group.id);
             socket.emit('join-group', group.id);
             currentGroupName.textContent = group.name;
             currentGroupDesc.textContent = group.description;
@@ -368,17 +375,30 @@ async function loadGroups(groups) {
 }
 
 async function loadPublicGroups() {
+    if (!currentUser) {
+        console.log('Cannot load public groups: user not authenticated');
+        return;
+    }
+    
     try {
+        console.log('Loading public groups...');
         const response = await fetch('/api/groups/public');
         const data = await response.json();
+        
+        console.log('Public groups response:', data);
         
         if (data.success) {
             publicGroupList.innerHTML = '';
             
-            const userGroups = await fetch(`/api/user/${currentUser.id}/groups`).then(r => r.json());
-            const userGroupIds = new Set(userGroups.groups.map(g => g.id));
+            const userGroupsResponse = await fetch(`/api/user/${currentUser.id}/groups`);
+            const userGroups = await userGroupsResponse.json();
             
+            console.log('User groups:', userGroups);
+            
+            const userGroupIds = new Set(userGroups.groups.map(g => g.id));
             const publicGroups = data.groups.filter(g => !userGroupIds.has(g.id));
+            
+            console.log('Filtered public groups:', publicGroups);
             
             if (publicGroups.length === 0) {
                 publicGroupList.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No public groups available</p>';
@@ -405,9 +425,13 @@ async function loadPublicGroups() {
                 
                 publicGroupList.appendChild(item);
             });
+        } else {
+            console.error('Failed to load public groups:', data.error);
+            publicGroupList.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">Error loading groups</p>';
         }
     } catch (error) {
         console.error('Failed to load public groups:', error);
+        publicGroupList.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">Error loading groups</p>';
     }
 }
 
