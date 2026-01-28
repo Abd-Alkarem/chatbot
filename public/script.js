@@ -48,8 +48,17 @@ const searchUsersBtn = document.getElementById('searchUsersBtn');
 const refreshGroupsBtn = document.getElementById('refreshGroupsBtn');
 
 socket.on('connect', () => {
+    console.log('Socket connected successfully');
     const token = localStorage.getItem('chatToken');
     socket.emit('authenticate', { token });
+});
+
+socket.on('connect_error', (error) => {
+    console.error('Socket connection error:', error);
+});
+
+socket.on('disconnect', (reason) => {
+    console.log('Socket disconnected:', reason);
 });
 
 socket.on('authenticated', (data) => {
@@ -633,6 +642,16 @@ voiceChatBtn.addEventListener('click', async () => {
 });
 
 async function startVoiceChat() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Voice chat is not supported in this browser. Please use Chrome, Firefox, or Edge.');
+        return;
+    }
+
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+        alert('Voice chat requires HTTPS. Please use a secure connection.');
+        return;
+    }
+
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
             audio: {
@@ -660,7 +679,24 @@ async function startVoiceChat() {
         
     } catch (error) {
         console.error('Error accessing microphone:', error);
-        alert('Could not access microphone. Please check permissions.');
+        
+        let errorMessage = 'Could not access microphone. ';
+        
+        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMessage += 'Please allow microphone access in your browser settings.';
+        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMessage += 'No microphone found. Please connect a microphone.';
+        } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMessage += 'Microphone is already in use by another application.';
+        } else if (error.name === 'OverconstrainedError') {
+            errorMessage += 'Microphone does not meet requirements.';
+        } else if (error.name === 'SecurityError') {
+            errorMessage += 'Security error. Voice chat requires HTTPS.';
+        } else {
+            errorMessage += 'Error: ' + error.message;
+        }
+        
+        alert(errorMessage);
     }
 }
 
