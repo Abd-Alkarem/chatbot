@@ -2,6 +2,8 @@
 
 This guide will help you create an Android APK for the chat app.
 
+**IMPORTANT:** Build the APK on your local computer, NOT on the server. The Capacitor dependencies have been removed from package.json to avoid deployment issues.
+
 ## Prerequisites
 
 1. **Node.js** installed (v16 or higher)
