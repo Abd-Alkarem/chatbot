@@ -1,0 +1,24 @@
+{
+  "appId": "com.chatapp.mobile",
+  "appName": "Chat App",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://chat-app-production-11dd.up.railway.app",
+    "cleartext": true,
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#0a0e27",
+      "showSpinner": true,
+      "spinnerColor": "#00f5ff"
+    }
+  }
+}

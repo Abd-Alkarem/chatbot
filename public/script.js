@@ -137,6 +137,33 @@ socket.on('new-message', (message) => {
     scrollToBottom();
 });
 
+socket.on('message-deleted', (data) => {
+    const messageElement = document.querySelector(`[data-message-id="${data.messageId}"]`);
+    if (messageElement) {
+        const textElement = messageElement.querySelector('.message-text');
+        if (textElement) {
+            textElement.textContent = 'This message was deleted';
+            textElement.style.fontStyle = 'italic';
+            textElement.style.opacity = '0.6';
+        }
+        const imageElement = messageElement.querySelector('.message-image');
+        if (imageElement) imageElement.remove();
+        const deleteBtn = messageElement.querySelector('.delete-message-btn');
+        if (deleteBtn) deleteBtn.remove();
+    }
+});
+
+socket.on('private-chat-ready', (data) => {
+    currentGroup = data.roomId;
+    currentGroupName.textContent = data.friend.username;
+    currentGroupDesc.textContent = 'Private chat';
+    messagesContainer.innerHTML = '';
+});
+
+socket.on('private-chat-started', (data) => {
+    console.log('Private chat started with:', data.user.username);
+});
+
 socket.on('user-joined', (data) => {
     if (data.room === currentGroup) {
         const systemMsg = document.createElement('div');
@@ -225,13 +252,43 @@ sidebarTabs.forEach(tab => {
 messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = messageInput.value.trim();
-    if (text) {
+    const imageUrl = document.getElementById('imageUrlInput')?.value.trim();
+    const gifUrl = document.getElementById('gifUrlInput')?.value.trim();
+    
+    if (text || imageUrl || gifUrl) {
         console.log('Sending message:', text, 'to room:', currentGroup);
-        socket.emit('send-message', { text, room: currentGroup });
+        socket.emit('send-message', { 
+            text, 
+            imageUrl, 
+            gifUrl,
+            room: currentGroup 
+        });
         messageInput.value = '';
+        if (document.getElementById('imageUrlInput')) document.getElementById('imageUrlInput').value = '';
+        if (document.getElementById('gifUrlInput')) document.getElementById('gifUrlInput').value = '';
         socket.emit('typing', false);
     }
 });
+
+function startPrivateChat(friendId) {
+    socket.emit('start-private-chat', { friendId });
+}
+
+// Media input toggle
+const mediaToggleBtn = document.getElementById('mediaToggleBtn');
+const mediaInputs = document.getElementById('mediaInputs');
+
+if (mediaToggleBtn && mediaInputs) {
+    mediaToggleBtn.addEventListener('click', () => {
+        if (mediaInputs.style.display === 'none' || !mediaInputs.style.display) {
+            mediaInputs.style.display = 'flex';
+            mediaToggleBtn.textContent = '✖️';
+        } else {
+            mediaInputs.style.display = 'none';
+            mediaToggleBtn.textContent = '📎';
+        }
+    });
+}
 
 messageInput.addEventListener('input', () => {
     socket.emit('typing', true);
@@ -473,7 +530,6 @@ async function loadFriends() {
         
         if (data.success) {
             friendList.innerHTML = '';
-            friendCount.textContent = data.friends.length;
             
             if (data.friends.length === 0) {
                 friendList.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No friends yet</p>';
@@ -487,9 +543,16 @@ async function loadFriends() {
                 item.innerHTML = `
                     <div class="list-item-header">
                         <span class="list-item-name">${friend.username}</span>
+                        <button class="chat-btn" data-friend-id="${friend.id}" style="background: var(--accent-primary); color: white; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px;">Chat</button>
                     </div>
                     <div class="list-item-info">${friend.email}</div>
                 `;
+                
+                const chatBtn = item.querySelector('.chat-btn');
+                chatBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    startPrivateChat(friend.id);
+                });
                 
                 friendList.appendChild(item);
             });
@@ -582,8 +645,15 @@ function displaySearchResults(results) {
 function displayMessage(message) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message';
-    if (message.userId === currentUser?.id) {
+    messageDiv.setAttribute('data-message-id', message.id);
+    
+    const isOwnMessage = message.userId === currentUser?.id;
+    if (isOwnMessage) {
         messageDiv.classList.add('own');
+    }
+    
+    if (message.deleted) {
+        messageDiv.classList.add('deleted-message');
     }
 
     const avatar = document.createElement('div');
@@ -607,18 +677,67 @@ function displayMessage(message) {
 
     header.appendChild(username);
     header.appendChild(time);
-
-    const text = document.createElement('div');
-    text.className = 'message-text';
-    text.textContent = message.text;
-
     content.appendChild(header);
-    content.appendChild(text);
+
+    // Add image if present
+    if (message.imageUrl && !message.deleted) {
+        const img = document.createElement('img');
+        img.className = 'message-image';
+        img.src = message.imageUrl;
+        img.alt = 'Shared image';
+        img.loading = 'lazy';
+        img.style.maxWidth = '300px';
+        img.style.borderRadius = '8px';
+        img.style.marginTop = '8px';
+        content.appendChild(img);
+    }
+    
+    // Add GIF if present
+    if (message.gifUrl && !message.deleted) {
+        const gif = document.createElement('img');
+        gif.className = 'message-image message-gif';
+        gif.src = message.gifUrl;
+        gif.alt = 'Shared GIF';
+        gif.loading = 'lazy';
+        gif.style.maxWidth = '300px';
+        gif.style.borderRadius = '8px';
+        gif.style.marginTop = '8px';
+        content.appendChild(gif);
+    }
+
+    // Add text
+    if (message.text) {
+        const text = document.createElement('div');
+        text.className = 'message-text';
+        text.textContent = message.text;
+        if (message.deleted) {
+            text.style.fontStyle = 'italic';
+            text.style.opacity = '0.6';
+        }
+        content.appendChild(text);
+    }
+    
+    // Add delete button for own messages
+    if (isOwnMessage && !message.deleted) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-message-btn';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'Delete message';
+        deleteBtn.style.cssText = 'background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0.6; margin-left: 8px;';
+        deleteBtn.onclick = () => deleteMessage(message.id, message.room || currentGroup);
+        content.appendChild(deleteBtn);
+    }
 
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(content);
 
     messagesContainer.appendChild(messageDiv);
+}
+
+function deleteMessage(messageId, room) {
+    if (confirm('Delete this message?')) {
+        socket.emit('delete-message', { messageId, room });
+    }
 }
 
 function formatTime(timestamp) {

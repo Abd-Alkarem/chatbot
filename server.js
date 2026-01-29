@@ -183,8 +183,13 @@ io.on('connection', (socket) => {
             username: user.username,
             avatar: user.avatar,
             text: data.text,
+            imageUrl: data.imageUrl || null,
+            gifUrl: data.gifUrl || null,
             room: data.room || onlineUser.currentRoom,
-            timestamp: new Date().toISOString()
+            isPrivate: data.isPrivate || false,
+            toUserId: data.toUserId || null,
+            timestamp: new Date().toISOString(),
+            deleted: false
         };
 
         console.log('Created message:', message);
@@ -199,7 +204,70 @@ io.on('connection', (socket) => {
         }
 
         console.log('Emitting message to room:', message.room);
-        io.to(message.room).emit('new-message', message);
+        
+        if (message.isPrivate && message.toUserId) {
+            // Send to specific user only
+            const toSocketId = userSockets.get(message.toUserId);
+            if (toSocketId) {
+                io.to(toSocketId).emit('new-message', message);
+            }
+            socket.emit('new-message', message);
+        } else {
+            io.to(message.room).emit('new-message', message);
+        }
+    });
+
+    socket.on('delete-message', (data) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+
+        const { messageId, room } = data;
+        
+        if (messages.has(room)) {
+            const roomMessages = messages.get(room);
+            const message = roomMessages.find(m => m.id === messageId);
+            
+            if (message && message.userId === onlineUser.userId) {
+                message.deleted = true;
+                message.text = 'This message was deleted';
+                message.imageUrl = null;
+                message.gifUrl = null;
+                
+                io.to(room).emit('message-deleted', { messageId, room });
+            }
+        }
+    });
+
+    socket.on('start-private-chat', (data) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+
+        const { friendId } = data;
+        const friend = db.getUser(friendId);
+        
+        if (friend) {
+            const privateRoomId = [onlineUser.userId, friendId].sort().join('-');
+            
+            socket.join(privateRoomId);
+            
+            const friendSocketId = userSockets.get(friendId);
+            if (friendSocketId) {
+                io.to(friendSocketId).emit('private-chat-started', {
+                    roomId: privateRoomId,
+                    user: db.getUserSafe(onlineUser.userId)
+                });
+                io.sockets.sockets.get(friendSocketId).join(privateRoomId);
+            }
+            
+            socket.emit('private-chat-ready', {
+                roomId: privateRoomId,
+                friend: db.getUserSafe(friendId)
+            });
+            
+            if (messages.has(privateRoomId)) {
+                socket.emit('message-history', messages.get(privateRoomId));
+            }
+        }
     });
 
     socket.on('create-group', (groupData) => {
