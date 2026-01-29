@@ -1080,11 +1080,18 @@ body.dark-mode {
 
 /* Mobile Landscape & Small Tablets - 640px to 768px */
 @media (max-width: 768px) {
+    html {
+        height: 100%;
+        overflow: hidden;
+    }
+    
     body {
         font-size: 14px;
         overflow-x: hidden;
         position: relative;
         min-height: 100vh;
+        min-height: -webkit-fill-available;
+        height: 100%;
     }
     
     .voice-chat-container {
@@ -1129,13 +1136,15 @@ body.dark-mode {
     }
     
     .message-input-container {
-        position: fixed !important;
+        position: sticky !important;
+        position: -webkit-sticky !important;
         bottom: 0 !important;
         left: 0 !important;
         right: 0 !important;
-        width: 100vw !important;
+        width: 100% !important;
         max-width: 100% !important;
         padding: 15px 20px !important;
+        padding-bottom: calc(15px + env(safe-area-inset-bottom)) !important;
         margin: 0 !important;
         background: var(--bg-primary) !important;
         backdrop-filter: blur(20px) !important;
@@ -1148,6 +1157,14 @@ body.dark-mode {
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
         transform: translateZ(0) !important;
         -webkit-transform: translateZ(0) !important;
+        will-change: transform !important;
+    }
+    
+    /* Fallback for devices that don't support sticky */
+    @supports not (position: sticky) {
+        .message-input-container {
+            position: fixed !important;
+        }
     }
     
     .message-form {

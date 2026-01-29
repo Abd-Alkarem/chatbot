@@ -3,6 +3,37 @@ if (!localStorage.getItem('chatToken')) {
 }
 
 const socket = io();
+
+// Force input bar visibility on mobile devices (especially Samsung)
+function ensureInputBarVisible() {
+    const inputContainer = document.querySelector('.message-input-container');
+    if (inputContainer && window.innerWidth <= 768) {
+        inputContainer.style.cssText = `
+            position: sticky !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            z-index: 9999 !important;
+            background: var(--bg-primary) !important;
+            padding: 15px 20px !important;
+            border-top: 2px solid var(--border-color) !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+        `;
+        console.log('Input bar forced visible');
+    }
+}
+
+// Run on load and after a delay
+window.addEventListener('DOMContentLoaded', ensureInputBarVisible);
+window.addEventListener('load', () => {
+    setTimeout(ensureInputBarVisible, 500);
+    setTimeout(ensureInputBarVisible, 1000);
+});
+
 let currentUser = null;
 let currentGroup = 'general';
 let typingTimeout = null;
