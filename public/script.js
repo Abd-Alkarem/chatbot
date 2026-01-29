@@ -666,31 +666,47 @@ voiceChatBtn.addEventListener('click', async () => {
 });
 
 async function startVoiceChat() {
+    console.log('startVoiceChat called');
+    
     if (!currentUser) {
         alert('Please wait for authentication to complete before using voice chat.');
         console.error('Cannot start voice chat: currentUser is null');
         return;
     }
 
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('Voice chat is not supported in this browser. Please use Chrome, Firefox, or Edge.');
+    // Check for getUserMedia support with iOS Safari compatibility
+    const getUserMedia = navigator.mediaDevices?.getUserMedia || 
+                        navigator.webkitGetUserMedia || 
+                        navigator.mozGetUserMedia || 
+                        navigator.msGetUserMedia;
+    
+    if (!getUserMedia) {
+        alert('Voice chat is not supported in this browser. Please use Safari, Chrome, or Firefox.');
+        console.error('getUserMedia not supported');
         return;
     }
 
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && !location.hostname.includes('127.0.0.1')) {
         alert('Voice chat requires HTTPS. Please use a secure connection.');
+        console.error('HTTPS required for voice chat');
         return;
     }
 
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ 
+        console.log('Requesting microphone access...');
+        
+        // iOS Safari compatible audio constraints
+        const constraints = {
             audio: {
                 echoCancellation: true,
                 noiseSuppression: true,
-                autoGainControl: true
+                autoGainControl: true,
+                sampleRate: 48000
             }, 
             video: false 
-        });
+        };
+        
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
         
         isVoiceChatActive = true;
         voiceChatBtn.classList.add('active');
