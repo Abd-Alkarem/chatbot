@@ -1,6 +1,6 @@
-# Real-Time Chat Application
+# WhatsApp Clone - Real-Time Chat Application
 
-A modern, feature-rich chat application similar to WhatsApp/Telegram with user authentication, friends, groups, and dark mode!
+A fully-featured WhatsApp clone with authentic design, real-time messaging, voice chat, and all the features you expect from a modern messaging app!
 
 ## Features
 
@@ -13,7 +13,7 @@ A modern, feature-rich chat application similar to WhatsApp/Telegram with user a
 - ⌨️ **Typing indicators** - see when others are typing
 - 🌙 **Dark mode** - Toggle between light and dark themes
 - ⚙️ **Settings panel** - Customize your experience
-- 🎨 **Modern UI** - beautiful gradient design with smooth animations
+- 🎨 **WhatsApp UI** - Authentic WhatsApp design with green theme and familiar interface
 - 📱 **Fully Responsive** - Optimized for all devices (desktop, tablet, mobile)
 - 🎨 **Colorful avatars** - automatically generated for each user
 - 🔔 **Notifications** - Get notified about messages and friend requests
@@ -105,11 +105,21 @@ The chat app will be available at: **http://localhost:3000**
 - Works with multiple participants simultaneously using WebRTC
 
 ### Settings
-1. Click the **Settings** icon (gear) in the sidebar header
-2. **Appearance**: Toggle dark mode on/off
-3. **Notifications**: Enable/disable notifications and sounds
-4. **Profile**: Update your username and bio
-5. **Account**: Logout when needed
+1. Click the **three-dot menu** in the sidebar header
+2. Select **Settings** from the menu
+3. **Appearance**: Toggle dark mode on/off
+4. **Notifications**: Enable/disable notifications and sounds
+5. **Profile**: Update your username and bio
+6. **Account**: Logout when needed
+
+### WhatsApp Features
+- **Search Bar**: Search through your chats and contacts
+- **Menu System**: Access all features via the three-dot menu
+- **New Chat**: Start conversations with friends
+- **Voice/Video Calls**: Call buttons in chat header
+- **Emoji Picker**: Quick emoji insertion
+- **Message Bubbles**: WhatsApp-style sent/received messages
+- **Green Theme**: Authentic WhatsApp color scheme
 
 ### Mobile Usage
 - **Hamburger Menu**: Tap the menu icon (top left) to open/close sidebar
@@ -203,11 +213,14 @@ chat-app/
 - **Easy Controls**: One-click to join/leave voice chat
 
 ### User Interface
-- **Tabbed Sidebar**: Switch between Groups and Friends
+- **WhatsApp Design**: Authentic WhatsApp Web interface
+- **Green Theme**: Iconic WhatsApp green (#25D366)
+- **Dark Mode**: WhatsApp-style dark theme
 - **Responsive Design**: Works on all screen sizes
-- **Smooth Animations**: Polished user experience
+- **Message Bubbles**: Sent (green) and received (gray) bubbles
+- **Search Functionality**: Filter chats in real-time
+- **Menu System**: Three-dot menu for all actions
 - **Color-coded Avatars**: Unique colors for each user
-- **Modern Modals**: Clean popup interfaces
 
 ## Testing with Multiple Users
 

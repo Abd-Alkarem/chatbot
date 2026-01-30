@@ -76,7 +76,25 @@ const createGroupForm = document.getElementById('createGroupForm');
 
 const friendSearchInput = document.getElementById('friendSearchInput');
 const searchUsersBtn = document.getElementById('searchUsersBtn');
-const refreshGroupsBtn = document.getElementById('refreshGroupsBtn');
+const chatSearchInput = document.getElementById('chatSearchInput');
+const menuBtn = document.getElementById('menuBtn');
+const menuModal = document.getElementById('menuModal');
+const addFriendBtn = document.getElementById('addFriendBtn');
+const addFriendModal = document.getElementById('addFriendModal');
+const closeAddFriendBtn = document.getElementById('closeAddFriendBtn');
+const viewFriendsBtn = document.getElementById('viewFriendsBtn');
+const friendsModal = document.getElementById('friendsModal');
+const closeFriendsBtn = document.getElementById('closeFriendsBtn');
+const openSettingsBtn = document.getElementById('openSettingsBtn');
+const newChatBtn = document.getElementById('newChatBtn');
+const chatAvatar = document.getElementById('chatAvatar');
+const voiceCallBtn = document.getElementById('voiceCallBtn');
+const videoCallBtn = document.getElementById('videoCallBtn');
+const emojiBtn = document.getElementById('emojiBtn');
+const micBtn = document.getElementById('micBtn');
+const sendBtn = document.getElementById('sendBtn');
+const friendRequestsModal = document.getElementById('friendRequestsModal');
+const friendListModal = document.getElementById('friendListModal');
 
 socket.on('connect', () => {
     console.log('Socket connected successfully');
@@ -98,6 +116,9 @@ socket.on('authenticated', (data) => {
     currentUsername.textContent = currentUser.username;
     currentUserAvatar.style.backgroundColor = currentUser.avatar;
     currentUserAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+    
+    chatAvatar.style.backgroundColor = '#128C7E';
+    chatAvatar.textContent = 'G';
     
     profileUsername.value = currentUser.username;
     profileBio.value = currentUser.bio || '';
@@ -221,6 +242,7 @@ socket.on('friend-request-accepted', (data) => {
 socket.on('friend-added', (data) => {
     loadFriends();
     loadFriendRequests();
+    loadFriendsToModal();
 });
 
 socket.on('added-to-group', (data) => {
@@ -232,22 +254,103 @@ socket.on('error', (data) => {
     alert(data.message);
 });
 
-sidebarTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-        
-        sidebarTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        tabContents.forEach(content => {
-            if (content.id === `${tabName}Tab`) {
-                content.classList.add('active');
+menuBtn.addEventListener('click', () => {
+    menuModal.classList.remove('hidden');
+});
+
+menuModal.addEventListener('click', (e) => {
+    if (e.target === menuModal) {
+        menuModal.classList.add('hidden');
+    }
+});
+
+addFriendBtn.addEventListener('click', () => {
+    menuModal.classList.add('hidden');
+    addFriendModal.classList.remove('hidden');
+});
+
+closeAddFriendBtn.addEventListener('click', () => {
+    addFriendModal.classList.add('hidden');
+});
+
+addFriendModal.addEventListener('click', (e) => {
+    if (e.target === addFriendModal) {
+        addFriendModal.classList.add('hidden');
+    }
+});
+
+viewFriendsBtn.addEventListener('click', () => {
+    menuModal.classList.add('hidden');
+    friendsModal.classList.remove('hidden');
+    loadFriendsToModal();
+});
+
+closeFriendsBtn.addEventListener('click', () => {
+    friendsModal.classList.add('hidden');
+});
+
+friendsModal.addEventListener('click', (e) => {
+    if (e.target === friendsModal) {
+        friendsModal.classList.add('hidden');
+    }
+});
+
+openSettingsBtn.addEventListener('click', () => {
+    menuModal.classList.add('hidden');
+    settingsModal.classList.remove('hidden');
+});
+
+newChatBtn.addEventListener('click', () => {
+    addFriendModal.classList.remove('hidden');
+});
+
+if (chatSearchInput) {
+    chatSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.list-item');
+        items.forEach(item => {
+            const name = item.querySelector('.list-item-name')?.textContent.toLowerCase() || '';
+            if (name.includes(query)) {
+                item.style.display = '';
             } else {
-                content.classList.remove('active');
+                item.style.display = 'none';
             }
         });
     });
-});
+}
+
+if (emojiBtn) {
+    emojiBtn.addEventListener('click', () => {
+        const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '✨', '💯'];
+        const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+        messageInput.value += emoji;
+        messageInput.focus();
+    });
+}
+
+if (voiceCallBtn) {
+    voiceCallBtn.addEventListener('click', () => {
+        voiceChatBtn.click();
+    });
+}
+
+if (videoCallBtn) {
+    videoCallBtn.addEventListener('click', () => {
+        alert('Video call feature coming soon!');
+    });
+}
+
+if (messageInput) {
+    messageInput.addEventListener('input', () => {
+        if (messageInput.value.trim()) {
+            sendBtn.style.display = 'flex';
+            if (micBtn) micBtn.style.display = 'none';
+        } else {
+            sendBtn.style.display = 'flex';
+            if (micBtn) micBtn.style.display = 'none';
+        }
+    });
+}
 
 messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -423,9 +526,6 @@ friendSearchInput.addEventListener('keypress', (e) => {
     }
 });
 
-refreshGroupsBtn.addEventListener('click', () => {
-    loadPublicGroups();
-});
 
 async function loadGroups(groups) {
     console.log('Loading user groups:', groups);
@@ -529,10 +629,24 @@ async function loadFriends() {
         const data = await response.json();
         
         if (data.success) {
-            friendList.innerHTML = '';
+            friendCount.textContent = data.friends.length;
+        }
+    } catch (error) {
+        console.error('Failed to load friends:', error);
+    }
+}
+
+async function loadFriendsToModal() {
+    try {
+        const response = await fetch(`/api/user/${currentUser.id}/friends`);
+        const data = await response.json();
+        
+        if (data.success) {
+            friendListModal.innerHTML = '';
+            friendCount.textContent = data.friends.length;
             
             if (data.friends.length === 0) {
-                friendList.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No friends yet</p>';
+                friendListModal.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No friends yet</p>';
                 return;
             }
             
@@ -540,21 +654,32 @@ async function loadFriends() {
                 const item = document.createElement('div');
                 item.className = 'list-item';
                 
-                item.innerHTML = `
+                const avatar = document.createElement('div');
+                avatar.className = 'user-avatar';
+                avatar.style.backgroundColor = friend.avatar;
+                avatar.textContent = friend.username.charAt(0).toUpperCase();
+                
+                const content = document.createElement('div');
+                content.style.flex = '1';
+                content.innerHTML = `
                     <div class="list-item-header">
                         <span class="list-item-name">${friend.username}</span>
-                        <button class="chat-btn" data-friend-id="${friend.id}" style="background: var(--accent-primary); color: white; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; font-size: 12px;">Chat</button>
+                        <button class="chat-btn" data-friend-id="${friend.id}" style="background: var(--whatsapp-green); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;">Chat</button>
                     </div>
                     <div class="list-item-info">${friend.email}</div>
                 `;
+                
+                item.appendChild(avatar);
+                item.appendChild(content);
                 
                 const chatBtn = item.querySelector('.chat-btn');
                 chatBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     startPrivateChat(friend.id);
+                    friendsModal.classList.add('hidden');
                 });
                 
-                friendList.appendChild(item);
+                friendListModal.appendChild(item);
             });
         }
     } catch (error) {
@@ -568,41 +693,54 @@ async function loadFriendRequests() {
         const data = await response.json();
         
         if (data.success) {
-            friendRequests.innerHTML = '';
             requestCount.textContent = data.requests.length;
             
-            if (data.requests.length === 0) {
-                friendRequests.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No pending requests</p>';
-                return;
+            if (friendRequestsModal) {
+                friendRequestsModal.innerHTML = '';
+                
+                if (data.requests.length === 0) {
+                    friendRequestsModal.innerHTML = '<p style="color: var(--text-secondary); padding: 10px;">No pending requests</p>';
+                    return;
+                }
+                
+                data.requests.forEach(request => {
+                    const item = document.createElement('div');
+                    item.className = 'list-item';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'user-avatar';
+                    avatar.style.backgroundColor = request.from.avatar;
+                    avatar.textContent = request.from.username.charAt(0).toUpperCase();
+                    
+                    const content = document.createElement('div');
+                    content.style.flex = '1';
+                    content.innerHTML = `
+                        <div class="list-item-header">
+                            <span class="list-item-name">${request.from.username}</span>
+                        </div>
+                        <div class="list-item-info">${request.from.email}</div>
+                        <div class="list-item-actions" style="margin-top: 10px;">
+                            <button class="btn-accept" data-id="${request.id}">Accept</button>
+                            <button class="btn-reject" data-id="${request.id}">Reject</button>
+                        </div>
+                    `;
+                    
+                    item.appendChild(avatar);
+                    item.appendChild(content);
+                    
+                    item.querySelector('.btn-accept').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        socket.emit('accept-friend-request', request.id);
+                    });
+                    
+                    item.querySelector('.btn-reject').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        socket.emit('reject-friend-request', request.id);
+                    });
+                    
+                    friendRequestsModal.appendChild(item);
+                });
             }
-            
-            data.requests.forEach(request => {
-                const item = document.createElement('div');
-                item.className = 'list-item';
-                
-                item.innerHTML = `
-                    <div class="list-item-header">
-                        <span class="list-item-name">${request.from.username}</span>
-                    </div>
-                    <div class="list-item-info">${request.from.email}</div>
-                    <div class="list-item-actions" style="margin-top: 10px;">
-                        <button class="btn-accept" data-id="${request.id}">Accept</button>
-                        <button class="btn-reject" data-id="${request.id}">Reject</button>
-                    </div>
-                `;
-                
-                item.querySelector('.btn-accept').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    socket.emit('accept-friend-request', request.id);
-                });
-                
-                item.querySelector('.btn-reject').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    socket.emit('reject-friend-request', request.id);
-                });
-                
-                friendRequests.appendChild(item);
-            });
         }
     } catch (error) {
         console.error('Failed to load friend requests:', error);
