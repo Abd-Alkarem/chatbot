@@ -54,15 +54,113 @@
                 <input type="text" id="chatSearchInput" placeholder="Search or start new chat">
             </div>
 
-            <div class="tab-content active" id="groupsTab">
-                <div id="groupList" class="list-container"></div>
-                <div id="publicGroupList" class="list-container"></div>
+            <div class="sidebar-tabs-main">
+                <button class="sidebar-tab-main active" data-tab="chats">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span>Chats</span>
+                </button>
+                <button class="sidebar-tab-main" data-tab="status">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span>Status</span>
+                </button>
+                <button class="sidebar-tab-main" data-tab="calls">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    <span>Calls</span>
+                </button>
+                <button class="sidebar-tab-main" data-tab="communities">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span>Communities</span>
+                </button>
             </div>
 
-            <div class="tab-content" id="friendsTab">
-                <div id="searchResults" class="list-container"></div>
-                <div id="friendRequests" class="list-container"></div>
+            <div class="tab-content-main active" id="chatsTab">
+                <div class="archived-chats" id="archivedChatsBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="21 8 21 21 3 21 3 8"/>
+                        <rect x="1" y="3" width="22" height="5"/>
+                        <line x1="10" y1="12" x2="14" y2="12"/>
+                    </svg>
+                    <span>Archived</span>
+                    <span class="badge" id="archivedCount">0</span>
+                </div>
+                <div id="groupList" class="list-container"></div>
+                <div id="publicGroupList" class="list-container"></div>
                 <div id="friendList" class="list-container"></div>
+            </div>
+
+            <div class="tab-content-main" id="statusTab">
+                <div class="status-header">
+                    <h3>Status</h3>
+                    <button class="icon-btn" id="addStatusBtn" title="Add Status">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="my-status" id="myStatus">
+                    <div class="status-avatar-container">
+                        <div class="status-avatar" id="myStatusAvatar"></div>
+                        <div class="add-status-icon">+</div>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-name">My status</div>
+                        <div class="status-time">Tap to add status update</div>
+                    </div>
+                </div>
+                <div class="status-divider">Recent updates</div>
+                <div id="statusList" class="list-container"></div>
+                <div class="status-divider">Viewed updates</div>
+                <div id="viewedStatusList" class="list-container"></div>
+            </div>
+
+            <div class="tab-content-main" id="callsTab">
+                <div class="calls-header">
+                    <h3>Calls</h3>
+                    <button class="icon-btn" id="newCallBtn" title="New Call">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="callsList" class="list-container"></div>
+            </div>
+
+            <div class="tab-content-main" id="communitiesTab">
+                <div class="communities-header">
+                    <h3>Communities</h3>
+                    <button class="icon-btn" id="newCommunityBtn" title="New Community">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="community-intro">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <h3>Stay connected with a community</h3>
+                    <p>Communities bring members together in topic-based groups, and make it easy to get admin announcements.</p>
+                    <button class="modal-btn" id="startCommunityBtn">Start a community</button>
+                </div>
+                <div id="communitiesList" class="list-container"></div>
             </div>
         </div>
 
@@ -282,6 +380,20 @@
                 </svg>
                 <span>Friends</span>
             </div>
+            <div class="menu-item" id="starredMessagesBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                <span>Starred Messages</span>
+            </div>
+            <div class="menu-item" id="broadcastListBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>New Broadcast</span>
+            </div>
             <div class="menu-item" id="openSettingsBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="3"/>
@@ -316,6 +428,115 @@
         </div>
     </div>
 
+    <div id="statusModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Status</h2>
+                <button class="close-btn" id="closeStatusBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="statusForm" class="modal-form">
+                <div class="form-group">
+                    <label>Status Text</label>
+                    <textarea id="statusText" rows="3" placeholder="What's on your mind?" maxlength="700"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <div class="color-picker">
+                        <button type="button" class="color-option" data-color="#25D366" style="background: #25D366"></button>
+                        <button type="button" class="color-option" data-color="#128C7E" style="background: #128C7E"></button>
+                        <button type="button" class="color-option" data-color="#075E54" style="background: #075E54"></button>
+                        <button type="button" class="color-option" data-color="#E53E3E" style="background: #E53E3E"></button>
+                        <button type="button" class="color-option" data-color="#3182CE" style="background: #3182CE"></button>
+                        <button type="button" class="color-option" data-color="#805AD5" style="background: #805AD5"></button>
+                    </div>
+                </div>
+                <button type="submit" class="modal-btn">Post Status</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="viewStatusModal" class="modal hidden">
+        <div class="modal-content status-viewer">
+            <button class="close-btn" id="closeViewStatusBtn" style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <div id="statusViewerContent"></div>
+        </div>
+    </div>
+
+    <div id="starredMessagesModal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>Starred Messages</h2>
+                <button class="close-btn" id="closeStarredBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="starredMessagesList" class="starred-messages-list"></div>
+        </div>
+    </div>
+
+    <div id="broadcastModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Broadcast List</h2>
+                <button class="close-btn" id="closeBroadcastBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="broadcastForm" class="modal-form">
+                <div class="form-group">
+                    <label>List Name</label>
+                    <input type="text" id="broadcastName" required placeholder="e.g., Family, Work Team">
+                </div>
+                <div class="form-group">
+                    <label>Select Recipients</label>
+                    <div id="broadcastRecipients" class="recipients-list"></div>
+                </div>
+                <button type="submit" class="modal-btn">Create Broadcast List</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="communityModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create Community</h2>
+                <button class="close-btn" id="closeCommunityBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form id="communityForm" class="modal-form">
+                <div class="form-group">
+                    <label>Community Name</label>
+                    <input type="text" id="communityName" required maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="communityDesc" rows="3" maxlength="200"></textarea>
+                </div>
+                <button type="submit" class="modal-btn">Create Community</button>
+            </form>
+        </div>
+    </div>
+
     <div id="friendsModal" class="modal hidden">
         <div class="modal-content large">
             <div class="modal-header">
@@ -345,5 +566,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
+    <script src="whatsapp-features.js"></script>
 </body>
 </html>

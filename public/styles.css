@@ -1134,3 +1134,593 @@ body.dark-mode {
         font-size: 16px;
     }
 }
+/* Add these styles to existing styles.css */
+
+/* Sidebar Tabs Main */
+.sidebar-tabs-main {
+    display: flex;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-tab-main {
+    flex: 1;
+    padding: 12px 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border-bottom: 3px solid transparent;
+}
+
+.sidebar-tab-main span {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.sidebar-tab-main.active {
+    color: var(--whatsapp-green);
+    border-bottom-color: var(--whatsapp-green);
+}
+
+.sidebar-tab-main:hover {
+    background: var(--hover-bg);
+}
+
+.tab-content-main {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tab-content-main.active {
+    display: block;
+}
+
+/* Archived Chats */
+.archived-chats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+}
+
+.archived-chats:hover {
+    background: var(--hover-bg);
+}
+
+.archived-chats svg {
+    color: var(--whatsapp-green);
+}
+
+.archived-chats span:first-of-type {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Status Styles */
+.status-header,
+.calls-header,
+.communities-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--sidebar-bg);
+}
+
+.status-header h3,
+.calls-header h3,
+.communities-header h3 {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.my-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.my-status:hover {
+    background: var(--hover-bg);
+}
+
+.status-avatar-container {
+    position: relative;
+}
+
+.status-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 500;
+    font-size: 18px;
+}
+
+.add-status-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background: var(--whatsapp-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    border: 2px solid var(--sidebar-bg);
+}
+
+.status-info {
+    flex: 1;
+}
+
+.status-name {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.status-time {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.status-divider {
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    background: var(--sidebar-bg);
+}
+
+/* Status Viewer */
+.status-viewer {
+    background: black !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
+
+#statusViewerContent {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 40px;
+}
+
+.status-display {
+    max-width: 500px;
+    width: 100%;
+    aspect-ratio: 9/16;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+    color: white;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.status-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.status-user-info .user-avatar {
+    width: 40px;
+    height: 40px;
+}
+
+.status-user-info .username {
+    color: white;
+    font-size: 16px;
+}
+
+/* Color Picker */
+.color-picker {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.color-option {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+}
+
+.color-option.selected {
+    border-color: white;
+    box-shadow: 0 0 0 2px var(--whatsapp-green);
+}
+
+/* Calls List */
+.call-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.call-item:hover {
+    background: var(--hover-bg);
+}
+
+.call-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.call-icon.incoming {
+    color: var(--whatsapp-green);
+}
+
+.call-icon.outgoing {
+    color: var(--text-secondary);
+}
+
+.call-icon.missed {
+    color: #e53e3e;
+}
+
+.call-info {
+    flex: 1;
+}
+
+.call-name {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.call-details {
+    color: var(--text-secondary);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.call-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.call-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--whatsapp-green);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.call-btn:hover {
+    background: var(--whatsapp-green-dark);
+    transform: scale(1.05);
+}
+
+.call-btn.video {
+    background: var(--bg-secondary);
+}
+
+/* Communities */
+.community-intro {
+    padding: 40px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.community-intro svg {
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.community-intro h3 {
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.community-intro p {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 350px;
+}
+
+.community-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.community-item:hover {
+    background: var(--hover-bg);
+}
+
+.community-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: var(--whatsapp-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 20px;
+}
+
+.community-info {
+    flex: 1;
+}
+
+.community-name {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.community-members {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Starred Messages */
+.starred-messages-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.starred-message-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.starred-message-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.starred-message-header .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.starred-message-text {
+    background: var(--message-bg-received);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.starred-message-time {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Broadcast Lists */
+.recipients-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.recipient-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.recipient-item:hover {
+    background: var(--hover-bg);
+}
+
+.recipient-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.recipient-item .user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+}
+
+.recipient-info {
+    flex: 1;
+}
+
+.recipient-name {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Message Star Button */
+.star-message-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.6;
+    margin-left: 8px;
+    padding: 4px;
+    transition: opacity 0.2s;
+}
+
+.star-message-btn:hover {
+    opacity: 1;
+}
+
+.star-message-btn.starred {
+    opacity: 1;
+    color: #FFD700;
+}
+
+/* Enhanced Settings */
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section h3 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-primary);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.setting-info {
+    flex: 1;
+}
+
+.setting-info label {
+    font-weight: 500;
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.setting-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+/* Profile Photo Upload */
+.profile-photo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.profile-photo-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 48px;
+    position: relative;
+    cursor: pointer;
+}
+
+.profile-photo-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.profile-photo-preview:hover .profile-photo-overlay {
+    opacity: 1;
+}
+
+.profile-photo-overlay svg {
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar-tab-main span {
+        font-size: 11px;
+    }
+    
+    .status-avatar {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .community-intro {
+        padding: 30px 16px;
+    }
+}

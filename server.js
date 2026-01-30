@@ -27,6 +27,12 @@ const onlineUsers = new Map();
 const userSockets = new Map();
 const messages = new Map();
 const voiceRooms = new Map();
+const statusUpdates = new Map();
+const callsHistory = new Map();
+const communities = new Map();
+const starredMessages = new Map();
+const broadcastLists = new Map();
+const archivedChats = new Map();
 
 app.post('/api/register', async (req, res) => {
     try {
@@ -510,6 +516,193 @@ io.on('connection', (socket) => {
     socket.on('voice-activity', (data) => {
         const { room, userId, isSpeaking } = data;
         socket.to(room).emit('voice-activity', { userId, isSpeaking });
+    });
+
+    // Status Updates
+    socket.on('post-status', (status) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        if (!statusUpdates.has(onlineUser.userId)) {
+            statusUpdates.set(onlineUser.userId, []);
+        }
+        
+        statusUpdates.get(onlineUser.userId).push(status);
+        io.emit('new-status', status);
+        
+        // Auto-delete after 24 hours
+        setTimeout(() => {
+            const userStatuses = statusUpdates.get(onlineUser.userId);
+            if (userStatuses) {
+                const index = userStatuses.findIndex(s => s.id === status.id);
+                if (index > -1) userStatuses.splice(index, 1);
+            }
+        }, 24 * 60 * 60 * 1000);
+    });
+
+    socket.on('get-status-updates', () => {
+        const allStatuses = [];
+        statusUpdates.forEach((statuses) => {
+            statuses.forEach(status => {
+                if (new Date(status.expiresAt) > new Date()) {
+                    allStatuses.push(status);
+                }
+            });
+        });
+        socket.emit('status-updates', allStatuses);
+    });
+
+    socket.on('view-status', (statusId) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        statusUpdates.forEach((statuses) => {
+            const status = statuses.find(s => s.id === statusId);
+            if (status && !status.views.includes(onlineUser.userId)) {
+                status.views.push(onlineUser.userId);
+            }
+        });
+    });
+
+    // Calls
+    socket.on('initiate-call', (call) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const callData = {
+            ...call,
+            userId: call.userId,
+            username: onlineUser.username,
+            avatar: onlineUser.avatar,
+            type: 'outgoing',
+            timestamp: new Date().toISOString()
+        };
+        
+        if (!callsHistory.has(onlineUser.userId)) {
+            callsHistory.set(onlineUser.userId, []);
+        }
+        callsHistory.get(onlineUser.userId).unshift(callData);
+        
+        const targetSocketId = userSockets.get(call.userId);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit('incoming-call', {
+                from: onlineUser.userId,
+                username: onlineUser.username,
+                callType: call.callType
+            });
+        }
+        
+        socket.emit('new-call', callData);
+    });
+
+    socket.on('get-calls-history', () => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const userCalls = callsHistory.get(onlineUser.userId) || [];
+        socket.emit('calls-history', userCalls);
+    });
+
+    // Communities
+    socket.on('create-community', (community) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        communities.set(community.id, community);
+        io.emit('new-community', community);
+    });
+
+    socket.on('get-communities', () => {
+        const communitiesList = Array.from(communities.values());
+        socket.emit('communities-list', communitiesList);
+    });
+
+    // Starred Messages
+    socket.on('star-message', (messageId) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        if (!starredMessages.has(onlineUser.userId)) {
+            starredMessages.set(onlineUser.userId, []);
+        }
+        
+        messages.forEach((roomMessages) => {
+            const message = roomMessages.find(m => m.id === messageId);
+            if (message) {
+                starredMessages.get(onlineUser.userId).push(message);
+            }
+        });
+    });
+
+    socket.on('unstar-message', (messageId) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const userStarred = starredMessages.get(onlineUser.userId);
+        if (userStarred) {
+            const index = userStarred.findIndex(m => m.id === messageId);
+            if (index > -1) userStarred.splice(index, 1);
+        }
+    });
+
+    socket.on('get-starred-messages', () => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const userStarred = starredMessages.get(onlineUser.userId) || [];
+        socket.emit('starred-messages', userStarred);
+    });
+
+    // Broadcast Lists
+    socket.on('create-broadcast-list', (broadcast) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        broadcastLists.set(broadcast.id, broadcast);
+        socket.emit('broadcast-list-created', broadcast);
+    });
+
+    socket.on('send-broadcast', (data) => {
+        const { broadcastId, message } = data;
+        const broadcast = broadcastLists.get(broadcastId);
+        
+        if (broadcast) {
+            broadcast.recipients.forEach(recipientId => {
+                const recipientSocketId = userSockets.get(recipientId);
+                if (recipientSocketId) {
+                    io.to(recipientSocketId).emit('broadcast-message', message);
+                }
+            });
+        }
+    });
+
+    // Archived Chats
+    socket.on('archive-chat', (chatId) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        if (!archivedChats.has(onlineUser.userId)) {
+            archivedChats.set(onlineUser.userId, new Set());
+        }
+        archivedChats.get(onlineUser.userId).add(chatId);
+    });
+
+    socket.on('unarchive-chat', (chatId) => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const userArchived = archivedChats.get(onlineUser.userId);
+        if (userArchived) {
+            userArchived.delete(chatId);
+        }
+    });
+
+    socket.on('get-archived-chats', () => {
+        const onlineUser = onlineUsers.get(socket.id);
+        if (!onlineUser) return;
+        
+        const userArchived = archivedChats.get(onlineUser.userId) || new Set();
+        socket.emit('archived-chats', Array.from(userArchived));
     });
 
     socket.on('disconnect', () => {
